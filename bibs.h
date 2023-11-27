@@ -45,5 +45,5 @@ void iniciasimulacao(pista** aeroporto, aviao** ceu, aviao** pousados, int ciclo
 void aviao_move(aviao* ceu);
 void fim(pista **aeroporto,aviao **voando,aviao** pousados);
 
-void add_to_log(aviao* a);
+void add_to_log(FILE* log,aviao* a);
 void registrar(aviao **pousados);
