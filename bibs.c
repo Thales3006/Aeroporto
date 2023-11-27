@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <time.h>
+
+#define MIN 60
 
 typedef struct aviao{
     int codigo;
@@ -31,7 +34,7 @@ void add_to_pista(pista** a, int pos, int codigo, char modelo[], char destino[],
 void del_pista(pista** a, int pos);
 void rem_from_pista(pista** a, int pos);
 void imprime_pista(pista* a);
-void add_aviao(aviao** a, int codigo, char modelo[], char destino[], int distancia, int tempo_de_voo,float velocidade, int estado, int direcao);
+void add_aviao(aviao** a, int codigo, char modelo[], char destino[], int distancia, int tempo_de_voo, float velocidade, int x, int y, int z, int estado, int direcao);
 void del_aviao(aviao** a, int pos);
 void del_all_aviao(aviao** a);
 void del_all_pista(pista** a);
@@ -41,11 +44,16 @@ int tamanho_pista(pista* a);
 int tamanho_in_pista(pista* a);
 aviao* info_Pista(pista* a, int posP, int posA);
 aviao* info(aviao* a, int pos);
-void aterrissando(aviao **a, int i, int pos);
 
 void pistas(pista** a,int n);
 void decolar(pista** aeroporto, aviao** ceu, int pista);
-void fim(pista **aeroporto,aviao **voando);
+void aterrissando(aviao **a, aviao** pousados, int ciclos);
+void iniciasimulacao(pista** aeroporto, aviao** ceu, aviao** pousados, int ciclos);
+void aviao_move(aviao* ceu);
+void fim(pista **aeroporto,aviao **voando,aviao** pousados);
+
+void add_to_log(aviao* a);
+void registrar(aviao **pousados);
 
 //*****************************************
 void criar_pista(pista** a){
@@ -71,7 +79,7 @@ void add_to_pista(pista** a,int pos,int codigo, char modelo[], char destino[], i
 			if(!*a)return;
 		}
     // adiciona o avião
-    add_aviao(&((*a)->head), codigo, modelo, destino, distancia, tempo_de_voo, velocidade, estado, direcao);
+    add_aviao(&((*a)->head), codigo, modelo, destino, distancia, tempo_de_voo, velocidade, 0, 0, 0, estado, direcao);
 }
 
 void del_pista(pista** a,int pos){
@@ -119,7 +127,7 @@ void imprime_pista(pista* a){
     printf("\e[0m");
 }
 
-void add_aviao(aviao** a, int codigo, char modelo[], char destino[], int distancia, int tempo_de_voo, float velocidade, int estado, int direcao){
+void add_aviao(aviao** a, int codigo, char modelo[], char destino[], int distancia, int tempo_de_voo, float velocidade, int x, int y, int z, int estado, int direcao){
     aviao *novo = malloc(sizeof(aviao));
 	if(!*a){
 		*a=novo;
@@ -131,13 +139,16 @@ void add_aviao(aviao** a, int codigo, char modelo[], char destino[], int distanc
 		(*a)->prox=novo;
     }
         novo->prox=NULL;
-		novo->x=0;novo->y=0;novo->z=0;
+
         novo->codigo=codigo;
         strcpy(novo->modelo, modelo);
         strcpy(novo->destino, destino);
         novo->distancia=distancia;
         novo->tempo_de_voo=tempo_de_voo;
         novo->velocidade=velocidade;
+        novo->x=x;
+        novo->y=y;
+        novo->z=z;
         novo->estado=estado;
         novo->direcao=direcao;
 }
@@ -194,10 +205,11 @@ void imprime_aviao(aviao* a){
         printf("%s ",a->destino);
         printf("%d ",a->distancia);
         printf("%d ",a->tempo_de_voo);
+        printf("%f ",a->velocidade);
         printf("%f ",a->x);
         printf("%f ",a->y);
         printf("%f ",a->z);
-        printf("%f ",a->velocidade);
+
         printf("%d ",a->estado);
         printf("%d \n",a->direcao);
 
@@ -274,41 +286,104 @@ void decolar(pista** aeroporto, aviao** ceu, int pista) {
     a->velocidade = 260 + rand() % 60;
     a->estado = 2;
     a->direcao = rand() % 360;
-    add_aviao(ceu, a->codigo, a->modelo, a->destino, a->distancia, a->tempo_de_voo, a->velocidade, a->estado,a->direcao);
+
+    a->x += a->velocidade * cos((a->direcao*M_PI)/180);
+    a->y += a->velocidade * sin((a->direcao*M_PI)/180);
+    a->z += a->velocidade * 0.2;
+
+    add_aviao(ceu, a->codigo, a->modelo, a->destino, a->distancia, a->tempo_de_voo, a->velocidade, a->x, a->y, a->z, a->estado,a->direcao);
+    
     rem_from_pista(aeroporto, pista);
 }
-void aterrissando(aviao **a, int i, int pos){
-    int  min,t, d;
-    float w, v, z;
-    if((!(*a))||((*a)->estado)!=2){ //verifica se o avião esta decolado
-        printf("\nNão há avião decolado."); 
-        return;//se não há avião no céu, não há avião decolado
-    }
-    aviao* ceu = info(*a, 0);
-    d=((ceu)->distancia)/10; //d receberá a distancia do avião d agora é 10% da distancia
-    t=(ceu)->tempo_de_voo;  
-        if((i*((ceu)->velocidade))<=((ceu)->distancia -d) && (i*((ceu)->velocidade))){//se a velocidade pelo tempo for igual a 10% da distancia, então          
-            ceu->distancia = d;
-            w=(float)d*60/(ceu->velocidade);//deslocamento pela velocidade 
-            v=ceu->velocidade/w;//velocidade por horas pq o parametro é velocidade por horas
-            d=d/w;
-            z=ceu->z/w;
-            for( min=(int)w; min>=0;min--){
-                ceu->velocidade=ceu->velocidade-(int)v;
-                ceu->distancia=ceu->distancia-(int)d;
-                ceu->z = (ceu->z) -(int)z; 
-                if((ceu->distancia)<=100){
-                    ceu->estado=3;
-                     del_aviao(a, 0);
-                    
 
-                }
-            }
+void aterrissando(aviao **a, aviao** pousados, int ciclos){
+    int pos;
+    float dist;
+    aviao* ceu;
+
+    for(pos=0; pos < tamanho_aviao(*a); pos++){
+        ceu = info(*a, pos);
+        dist = sqrt( pow(ceu->x, 2) + pow(ceu->y, 2) );
+
+        if( dist >= ceu->distancia ){   // ceu->tempo_de_voo * (ceu->velocidade/MIN)
+            ceu->estado=3;
+            add_aviao(pousados, ceu->codigo, ceu->modelo, ceu->destino, ceu->distancia, ceu->tempo_de_voo, ceu->velocidade, ceu->x, ceu->y, ceu->z, ceu->estado, ciclos+1);
+            del_aviao(a, pos);
+
+            pos--;
+            continue;
         }
+
+        if( dist >= ceu->distancia * 0.9 ){ //se tiver mais que 90% do percurso percorrido
+            ceu->velocidade *= 0.95;
+            ceu->z *= 0.9;
+        }
+    }
 }
 
-void fim(pista **aeroporto,aviao **voando){
+void iniciasimulacao(pista** aeroporto, aviao** ceu, aviao** pousados, int ciclos){
+    int i;
+    for(i=0; i < ciclos; i++){
+        aviao_move(*ceu);
+        aterrissando(ceu,pousados,i);
+    }
+    registrar(pousados);
+}
+
+void aviao_move(aviao* ceu){
+    int pos;
+    aviao* avi;
+
+    for(pos=0; pos < tamanho_aviao(ceu) ;pos++){
+        avi = info(ceu, pos);
+
+        if( avi->velocidade <= 600 ){
+            avi->velocidade += 60;
+        }
+
+        avi->x += avi->velocidade/60 * cos((avi->direcao*M_PI)/180);
+        avi->y += avi->velocidade/60 * sin((avi->direcao*M_PI)/180);
+
+        if(avi->z < 9){
+            avi->z += avi->velocidade/60 * 0.3;
+        }
+    }   
+}
+
+void fim(pista **aeroporto,aviao **voando,aviao** pousados){
+
     del_all_pista(aeroporto);
     del_all_aviao(voando);
+
+}
+
+void add_to_log(aviao* a){
+    FILE* log = fopen("log.txt","a+");
+    fprintf(log,"%d ",a->codigo);
+    fprintf(log,"%s ",a->modelo);
+    fprintf(log,"%s ",a->destino);
+    fprintf(log,"%d ",a->distancia);
+    fprintf(log,"%d ",a->tempo_de_voo);
+    fprintf(log,"%f ",a->velocidade);
+    fprintf(log,"%f ",a->x);
+    fprintf(log,"%f ",a->y);
+    fprintf(log,"%f ",a->z);
+    fprintf(log,"%d ",a->estado);
+    fprintf(log,"%d\n",a->direcao);
+
+}
+
+void registrar(aviao **pousados){
+    FILE* log = fopen("log.txt","w");
+    int pos;
+    aviao* avi;
+
+    fprintf(log,"");
+    log = fopen("log.txt","a");
+
+    for(pos=0; pos < tamanho_aviao(*pousados); pos++){
+        avi = info(*pousados,pos);
+        add_to_log(avi);
+    }
 
 }
