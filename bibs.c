@@ -265,6 +265,10 @@ aviao* info(aviao* a,int pos){
     return a;
 }
 
+
+
+
+
 void pistas(pista** a,int n){
     int i;
     for(i=0;i<n;i++){
@@ -287,9 +291,9 @@ void decolar(pista** aeroporto, aviao** ceu, int pista) {
     a->estado = 2;
     a->direcao = rand() % 360;
 
-    a->x += a->velocidade * cos((a->direcao*M_PI)/180);
-    a->y += a->velocidade * sin((a->direcao*M_PI)/180);
-    a->z += a->velocidade * 0.2;
+    a->x += a->velocidade/MIN * cos((a->direcao*M_PI)/180);
+    a->y += a->velocidade/MIN * sin((a->direcao*M_PI)/180);
+    a->z += a->velocidade/MIN * 0.2;
 
     add_aviao(ceu, a->codigo, a->modelo, a->destino, a->distancia, a->tempo_de_voo, a->velocidade, a->x, a->y, a->z, a->estado,a->direcao);
     
@@ -341,11 +345,11 @@ void aviao_move(aviao* ceu){
             avi->velocidade += 60;
         }
 
-        avi->x += avi->velocidade/60 * cos((avi->direcao*M_PI)/180);
-        avi->y += avi->velocidade/60 * sin((avi->direcao*M_PI)/180);
+        avi->x += avi->velocidade/MIN * cos((avi->direcao*M_PI)/180);
+        avi->y += avi->velocidade/MIN * sin((avi->direcao*M_PI)/180);
 
         if(avi->z < 9){
-            avi->z += avi->velocidade/60 * 0.3;
+            avi->z += avi->velocidade/MIN * 0.3;
         }
     }   
 }
