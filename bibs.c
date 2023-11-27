@@ -52,7 +52,7 @@ void iniciasimulacao(pista** aeroporto, aviao** ceu, aviao** pousados, int ciclo
 void aviao_move(aviao* ceu);
 void fim(pista **aeroporto,aviao **voando,aviao** pousados);
 
-void add_to_log(aviao* a);
+void add_to_log(FILE* log,aviao* a);
 void registrar(aviao **pousados);
 
 //*****************************************
@@ -354,6 +354,26 @@ void aviao_move(aviao* ceu){
     }   
 }
 
+void aviao_move(aviao* ceu){
+    int pos;
+    aviao* avi;
+
+    for(pos=0; pos < tamanho_aviao(ceu) ;pos++){
+        avi = info(ceu, pos);
+
+        if( avi->velocidade <= 600 ){
+            avi->velocidade += 60;
+        }
+
+        avi->x += avi->velocidade/MIN * cos((avi->direcao*M_PI)/180);
+        avi->y += avi->velocidade/MIN * sin((avi->direcao*M_PI)/180);
+
+        if(avi->z < 9){
+            avi->z += avi->velocidade/MIN * 0.3;
+        }
+    }   
+}
+
 void fim(pista **aeroporto,aviao **voando,aviao** pousados){
 
     del_all_pista(aeroporto);
@@ -361,8 +381,7 @@ void fim(pista **aeroporto,aviao **voando,aviao** pousados){
 
 }
 
-void add_to_log(aviao* a){
-    FILE* log = fopen("log.txt","a+");
+void add_to_log(FILE* log,aviao* a){
     fprintf(log,"%d ",a->codigo);
     fprintf(log,"%s ",a->modelo);
     fprintf(log,"%s ",a->destino);
@@ -382,12 +401,27 @@ void registrar(aviao **pousados){
     int pos;
     aviao* avi;
 
-    fprintf(log,"");
+    fprintf(log," ");
     log = fopen("log.txt","a");
 
+    fprintf(log," Chegaram antes do Tempo:\n");
     for(pos=0; pos < tamanho_aviao(*pousados); pos++){
         avi = info(*pousados,pos);
-        add_to_log(avi);
+        if(avi->direcao < avi->tempo_de_voo){
+           add_to_log(log,avi); 
+        }   
+    }
+    fprintf(log,"\nChegaram Depois do Tempo:\n");
+    for(pos=0; pos < tamanho_aviao(*pousados); pos++){
+        avi = info(*pousados,pos);
+        if(avi->direcao > avi->tempo_de_voo){
+           add_to_log(log,avi); 
+        }   
+    }
+    fprintf(log,"\nTodos os aviões que pousaram:\n");
+    for(pos=0; pos < tamanho_aviao(*pousados); pos++){
+        avi = info(*pousados,pos);
+        add_to_log(log,avi); 
     }
 
 }
