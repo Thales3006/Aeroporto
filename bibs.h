@@ -37,7 +37,8 @@ int tamanho_pista(pista* a);
 int tamanho_in_pista(pista* a);
 aviao* info_Pista(pista* a, int posP, int posA);
 aviao* info(aviao* a, int pos);
-
+void tempestade(aviao **ceu);
+void turbulencia(aviao **ceu);
 void pistas(pista** a,int n);
 void decolar(pista** aeroporto, aviao** ceu, int pista);
 void fim(pista **aeroporto,aviao **voando);
