@@ -42,7 +42,8 @@ int tamanho_in_pista(pista* a);
 aviao* info_Pista(pista* a, int posP, int posA);
 aviao* info(aviao* a, int pos);
 void aterrissando(aviao **a, int i, int pos);
-
+void tempestade(aviao **ceu);
+void turbulencia(aviao **ceu);
 void pistas(pista** a,int n);
 void decolar(pista** aeroporto, aviao** ceu, int pista);
 void fim(pista **aeroporto,aviao **voando);
@@ -305,6 +306,36 @@ void aterrissando(aviao **a, int i, int pos){
                 }
             }
         }
+}
+
+void tempestade(aviao **ceu) {
+    if (!*ceu) // Verifica se há aviões no ceu
+        return;
+    int tam = tamanho_aviao(*ceu); // conta quantos aviões há no ceu
+    int sorteado = rand() % tam;
+    int tempestade = rand() % 2; // decide se a tempestade sera forte ou fraca
+    aviao *afetado = info(*ceu, sorteado);
+
+    // altera a latitude e a velocidade conforme a tempestade
+    if (tempestade == 0) {
+        printf("Tempestade fraca, avance rapidamente\n");
+        afetado->z -= 0.3;
+        afetado->velocidade += (afetado->velocidade) * 0.1;
+    } else {
+        printf("Tempestade forte, diminua a velocidade!\n");
+        afetado->z -= 0.3;
+        afetado->velocidade -= (afetado->velocidade) * 0.1;
+    }
+}
+
+void turbulencia(aviao **ceu) {
+    if (!*ceu) // Verifica se há aviões no ceu
+        return;
+    int tam = tamanho_aviao(*ceu); // conta quantos aviões há no ceu
+    int sorteado = rand() % tam;
+    aviao *afetado = info(*ceu, sorteado);
+    printf("Aviao com turbulencia, reduza a velocidade\n");
+    afetado->velocidade -=  afetado->velocidade * 0.15; //altera a velocidade
 }
 
 void fim(pista **aeroporto,aviao **voando){
