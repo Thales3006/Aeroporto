@@ -5,6 +5,7 @@
 #include <time.h>
 
 #define MIN 60
+#define ARRAY_SIZE 100
 
 typedef struct aviao{
     int codigo;
@@ -45,17 +46,125 @@ int tamanho_in_pista(pista* a);
 aviao* info_Pista(pista* a, int posP, int posA);
 aviao* info(aviao* a, int pos);
 
+//********************************************
+
+int menu(pista** aeroporto, aviao **ceu, aviao **pousados, int ciclos);
+
 void pistas(pista** a,int n);
 void decolar(pista** aeroporto, aviao** ceu, int pista);
 void aterrissando(aviao **a, aviao** pousados, int ciclos);
-void iniciasimulacao(pista** aeroporto, aviao** ceu, aviao** pousados, int ciclos);
+void aterrissagem_forcada(aviao **ceu, aviao** pousados, int codigo, int ciclos);
+void iniciasimulacao(pista** aeroporto, aviao** ceu, aviao** pousados, int ciclos, int *clima);
 void aviao_move(aviao* ceu);
+void tempestade(aviao **ceu);
+void neblina(aviao **ceu);
+void turbulencia(aviao **ceu);
+int colisao(aviao* ceu);
+int colidiu(aviao* ceu, float x, float y, float z);
 void fim(pista **aeroporto,aviao **voando,aviao** pousados);
 
 void add_to_log(FILE* log,aviao* a);
-void registrar(aviao **pousados);
+void registrar(pista** aeroporto, aviao **ceu, aviao **pousados, int* contadores);
 
 //*****************************************
+
+int menu(pista** aeroporto, aviao **ceu, aviao **pousados, int ciclos){
+    int command;
+    int param1, param2, param3, param4;
+    char *paramS1 = (char*)malloc(sizeof(char)*ARRAY_SIZE), *paramS2 = (char*)malloc(sizeof(char)*ARRAY_SIZE);
+    int verif;
+    if(!paramS1||!paramS2){
+        printf("Sem memoria o suficiente!");
+        exit(1);
+    }
+        printf("\nCOMANDOS:\n");
+        printf("1 - Inserir aviao no aeroporto\n");
+        printf("2 - Decolar aviao\n");
+        printf("3 - Aterrissagem forcada\n");
+        printf("4 - Construir uma pista\n");
+        printf("5 - Destruir uma pista\n");
+        printf("6 - Continuar\n");
+        printf("7 - Finalizar mais cedo\n");
+    do{
+        scanf("%d",&command);
+        setbuf(stdin, NULL);
+        if(command<=0||command>7)printf("\nComando invalido!\n");
+    }while(command<=0||command>7);
+
+    switch(command){
+        case 1:
+            do{
+                verif = 1;
+                printf("Numero da pista para inserir: ");
+                    if(!scanf("%d",&param1))verif = 0;
+                    setbuf(stdin, NULL);
+                printf("Insira as informacoes do aviao:\n");
+                printf("Codigo: ");
+                    if(!scanf("%d",&param2))verif = 0;
+                    setbuf(stdin, NULL);
+                printf("Modelo: ");
+                    if(!scanf("%s",paramS1))verif = 0;
+                    setbuf(stdin, NULL);
+                printf("Destino: ");
+                    if(!scanf("%s",paramS2))verif = 0;
+                    setbuf(stdin, NULL);
+                printf("Distancia: ");
+                    if(!scanf("%d",&param3))verif = 0;
+                    setbuf(stdin, NULL);
+                printf("Tempo de voo: ");
+                    if(!scanf("%d",&param4))verif = 0;
+                    setbuf(stdin, NULL);
+
+                if(!verif || (param1<=0||param1>tamanho_pista(*aeroporto)) || param3 <= 0 || param4 <= 0)printf("\nAlgum valor invalido!\n");
+            }while(!verif || (param1<=0||param1>tamanho_pista(*aeroporto)) || param3 <= 0 || param4 <= 0);
+            add_to_pista(aeroporto, param1-1, param2, paramS1, paramS2, param3, param4, 0, 1, 0);
+
+            break;
+        case 2:
+            do{
+                verif = 1;
+                printf("Numero da pista para decolar: ");
+                    if(!scanf("%d",&param1))verif = 0;
+                    setbuf(stdin, NULL);
+                if(!verif || param1<=0 || param1>tamanho_pista(*aeroporto))printf("\nValor invalido!\n");
+            }while(!verif || param1<=0 || param1>tamanho_pista(*aeroporto));
+            decolar(aeroporto, ceu, param1 - 1);
+
+            break;
+        case 3:
+            do{
+                verif = 1;
+                printf("Codigo do aviao para ser aterrissado: ");
+                    if(!scanf("%d",&param1))verif = 0;
+                    setbuf(stdin, NULL);
+                if(!verif || param1<=0)printf("\nValor invalido!\n");
+            }while(!verif || param1<=0);
+            aterrissagem_forcada(ceu, pousados, param1, ciclos);
+            break;
+        case 4: criar_pista(aeroporto);
+            break;
+        case 5: 
+            do{
+                verif = 1;
+                printf("Numero da pista para deletar: ");
+                    if(!scanf("%d",&param1))verif = 0;
+                    setbuf(stdin, NULL);
+                if(!verif || param1<=0 || param1>tamanho_pista(*aeroporto))printf("\nValor invalido!\n");
+            }while(!verif || param1<=0 || param1>tamanho_pista(*aeroporto));
+            del_pista(aeroporto,param1-1);
+
+            break;
+        case 6: break;
+
+        case 7:
+            return 0; 
+    }
+    return 1;
+}
+
+//********************************************************
+// FUNÇÕES DE AUXILIO DE CRIAÇÃO E ALTERAÇÃO DE LISTAS ENCADEADAS
+
 void criar_pista(pista** a){
     pista* novo=malloc(sizeof(pista));
 	if(!*a){
@@ -265,8 +374,8 @@ aviao* info(aviao* a,int pos){
     return a;
 }
 
-
-
+//******************************************************
+// FUNÇÕES REFERENTES AO PROJETO
 
 
 void pistas(pista** a,int n){
@@ -280,7 +389,6 @@ void decolar(pista** aeroporto, aviao** ceu, int pista) {
     srand(time(NULL));
 
     if (!*aeroporto) { // verifica se há aviões
-        printf("Nenhum aviao na pista\n");
         return;
     }
     // Adiciona o avião no céu e remove da pista especificada
@@ -325,103 +433,279 @@ void aterrissando(aviao **a, aviao** pousados, int ciclos){
     }
 }
 
-void iniciasimulacao(pista** aeroporto, aviao** ceu, aviao** pousados, int ciclos){
-    int i;
-    for(i=0; i < ciclos; i++){
-        aviao_move(*ceu);
-        aterrissando(ceu,pousados,i);
+void aterrissagem_forcada(aviao **ceu, aviao** pousados, int codigo, int ciclos){
+    int pos;
+    float dist;
+    aviao* avi;
+
+    for(pos=0; pos < tamanho_aviao(*ceu); pos++){
+        avi = info(*ceu, pos);
+
+        if( avi->codigo == codigo ){
+            avi->estado=3;
+            add_aviao(pousados, avi->codigo, avi->modelo, avi->destino, avi->distancia, avi->tempo_de_voo, avi->velocidade, avi->x, avi->y, avi->z, avi->estado, ciclos+1);
+            del_aviao(ceu, pos);
+            return;
+        }
     }
-    registrar(pousados);
+    printf("Nao foi encontrado o aviao com esse codigo!\n");
+}
+
+void iniciasimulacao(pista** aeroporto, aviao** ceu, aviao** pousados, int ciclos, int* clima){
+    int i;
+    int temp = *clima, nebl = *(clima+1),turb = *(clima+2);
+    int* contadores = malloc(sizeof(int)*4);
+
+    if(!contadores){
+        printf("Sem memoria o suficiente!");
+        exit(1);
+    }
+
+    *(contadores+0) = 0;
+    *(contadores+1) = 0;
+    *(contadores+2) = 0;
+    *(contadores+3) = 0;
+
+    for(i=0; i < ciclos; i++, temp -= 1, nebl-= 1, turb-= 1){
+
+        if( temp == 0 ){
+            tempestade(ceu);
+            temp = *clima+1;
+            *(contadores+0) += 1;
+        }
+        if( nebl == 0 ){
+            neblina(ceu);
+            nebl = *(clima+1)+1;
+            *(contadores+1) += 1;
+        }
+        if( turb == 0 ){
+            turbulencia(ceu);
+            turb = *(clima+2)+1;
+            *(contadores+2) += 1;
+        }
+
+        aviao_move(*ceu);
+        *(contadores+3) += colisao(*ceu);
+        aterrissando(ceu,pousados,i);
+        if(!menu(aeroporto, ceu, pousados, i))break;
+
+    }
+    registrar(aeroporto, ceu, pousados, contadores);
 }
 
 void aviao_move(aviao* ceu){
+    if(!ceu)return;
     int pos;
+    aviao* avi;
+
+        for(pos=0; pos < tamanho_aviao(ceu) ;pos++){
+            avi = info(ceu, pos);
+
+            if( avi->velocidade <= 600 ){
+                avi->velocidade += avi->velocidade/(avi->z+3);
+            }
+
+            avi->x += avi->velocidade/MIN * cos((avi->direcao*M_PI)/180);
+            avi->y += avi->velocidade/MIN * sin((avi->direcao*M_PI)/180);
+
+            if(avi->z < 9){
+                avi->z += avi->z/(avi->velocidade-1);
+            }
+        }
+}
+
+void tempestade(aviao **ceu) {
+    if (!*ceu) // Verifica se há aviões no ceu
+        return;
+    int tam = tamanho_aviao(*ceu); // conta quantos aviões há no ceu
+    int sorteado = rand() % tam;
+    int tempestade = rand() % 2; // decide se a tempestade sera forte ou fraca
+    
+    aviao *afetado = info(*ceu, sorteado);
+
+    // altera a latitude e a velocidade conforme a tempestade
+    if (tempestade == 0) {
+        //printf("Tempestade fraca, avance rapidamente\n");
+        afetado->z -= 0.3;
+        afetado->velocidade += (afetado->velocidade) * 0.1;
+    } else {
+        //printf("Tempestade forte, diminua a velocidade!\n");
+        afetado->z -= 0.3;
+        afetado->velocidade -= (afetado->velocidade) * 0.1;
+    }
+}
+
+void neblina(aviao **ceu){
+	if(!*ceu) return;
+	int a = tamanho_aviao(*ceu);
+	aviao *nebuloso = info(*ceu, rand() % a);
+
+	nebuloso->z = nebuloso->z - 0.5;
+	//printf("\nALERTA!!\nHá neblina no céu, a velocidade será reduzida em 5%% permanentemente!\n");
+	nebuloso->velocidade = nebuloso->velocidade * 0.95;
+	
+}
+
+void turbulencia(aviao **ceu) {
+    if (!*ceu) // Verifica se há aviões no ceu
+        return;
+    int tam = tamanho_aviao(*ceu); // conta quantos aviões há no ceu
+    int sorteado = rand() % tam;
+    aviao *afetado = info(*ceu, sorteado);
+    //printf("Aviao com turbulencia, reduza a velocidade\n");
+    afetado->velocidade -=  afetado->velocidade * 0.15; //altera a velocidade
+    
+}
+
+int colisao(aviao* ceu){
+    if(!ceu)return 0;
+    int pos, contador = 0;
+    float vel, x, y, z;
     aviao* avi;
 
     for(pos=0; pos < tamanho_aviao(ceu) ;pos++){
         avi = info(ceu, pos);
+        vel = avi->velocidade;
+        x = avi->x,
+        y = avi->y,
+        z = avi->y;
 
-        if( avi->velocidade <= 600 ){
-            avi->velocidade += 60;
+
+        if( vel <= 600 ){
+            vel += vel/(z+3);
         }
 
-        avi->x += avi->velocidade/MIN * cos((avi->direcao*M_PI)/180);
-        avi->y += avi->velocidade/MIN * sin((avi->direcao*M_PI)/180);
+        x += vel/MIN * cos((avi->direcao*M_PI)/180);
+        y += vel/MIN * sin((avi->direcao*M_PI)/180);
 
-        if(avi->z < 9){
-            avi->z += avi->velocidade/MIN * 0.3;
+        if(z < 9){
+            z += z/(vel-1);
         }
-    }   
+
+        if(colidiu(ceu, x, y, z)){
+            while(colidiu(ceu, x, y, z)){
+                z += vel * 0.05;
+                contador++;
+                }
+            avi->z = z;
+        }
+    }
+    return contador;
 }
-
-void aviao_move(aviao* ceu){
+int colidiu(aviao* ceu, float x, float y, float z){
     int pos;
     aviao* avi;
-
     for(pos=0; pos < tamanho_aviao(ceu) ;pos++){
         avi = info(ceu, pos);
 
-        if( avi->velocidade <= 600 ){
-            avi->velocidade += 60;
+        if(avi->x==x && avi->y==y && avi->z==z){
+            return 1;
         }
 
-        avi->x += avi->velocidade/MIN * cos((avi->direcao*M_PI)/180);
-        avi->y += avi->velocidade/MIN * sin((avi->direcao*M_PI)/180);
 
-        if(avi->z < 9){
-            avi->z += avi->velocidade/MIN * 0.3;
-        }
-    }   
+    }
+    return 0;
 }
 
 void fim(pista **aeroporto,aviao **voando,aviao** pousados){
 
     del_all_pista(aeroporto);
     del_all_aviao(voando);
+    del_all_aviao(pousados);
 
 }
 
 void add_to_log(FILE* log,aviao* a){
-    fprintf(log,"%d ",a->codigo);
-    fprintf(log,"%s ",a->modelo);
-    fprintf(log,"%s ",a->destino);
-    fprintf(log,"%d ",a->distancia);
-    fprintf(log,"%d ",a->tempo_de_voo);
-    fprintf(log,"%f ",a->velocidade);
-    fprintf(log,"%f ",a->x);
-    fprintf(log,"%f ",a->y);
-    fprintf(log,"%f ",a->z);
-    fprintf(log,"%d ",a->estado);
-    fprintf(log,"%d\n",a->direcao);
-
+    fprintf(log,"Código: %d ",a->codigo);
+    fprintf(log,"Modelo: %s ",a->modelo);
+    fprintf(log,"Destino: %s ",a->destino);
+    fprintf(log,"Distância: %d ",a->distancia);
+    fprintf(log,"Tempo esperado: %d ",a->tempo_de_voo);
+    //fprintf(log,"%f ",a->velocidade);
+    //fprintf(log,"%f ",a->x);
+    //fprintf(log,"%f ",a->y);
+    //fprintf(log,"%f ",a->z);
+    //fprintf(log,"%d ",a->estado);
 }
 
-void registrar(aviao **pousados){
+void registrar(pista** aeroporto, aviao **ceu, aviao **pousados, int* contadores){
     FILE* log = fopen("log.txt","w");
-    int pos;
+    int pos, cont = 0, bool=0;
     aviao* avi;
+    pista* pis;
 
     fprintf(log," ");
     log = fopen("log.txt","a");
 
-    fprintf(log," Chegaram antes do Tempo:\n");
+    fprintf(log," /**********************************************************/\n");
+    fprintf(log," /                          LOG                             /\n");
+    fprintf(log,"/**********************************************************/\n");
+
+    fprintf(log, "Colisoes Evitadas: %d\n", *(contadores+3));
+
+    fprintf(log,"\nChegaram antes do Tempo:\n");
     for(pos=0; pos < tamanho_aviao(*pousados); pos++){
         avi = info(*pousados,pos);
         if(avi->direcao < avi->tempo_de_voo){
-           add_to_log(log,avi); 
+           add_to_log(log,avi);
+           fprintf(log,"Tempo Real: %d\n",avi->direcao);
+           bool=1;
         }   
     }
+    if(!bool)fprintf(log,"Nenhum.\n");
+    else bool = 0;
+
     fprintf(log,"\nChegaram Depois do Tempo:\n");
     for(pos=0; pos < tamanho_aviao(*pousados); pos++){
         avi = info(*pousados,pos);
         if(avi->direcao > avi->tempo_de_voo){
-           add_to_log(log,avi); 
+           add_to_log(log,avi);
+           fprintf(log,"Tempo Real: %d\n",avi->direcao);
+           bool=1; 
         }   
     }
-    fprintf(log,"\nTodos os aviões que pousaram:\n");
-    for(pos=0; pos < tamanho_aviao(*pousados); pos++){
-        avi = info(*pousados,pos);
-        add_to_log(log,avi); 
+    if(!bool)fprintf(log,"Nenhum.\n");
+    else bool = 0;
+
+    fprintf(log, "\nOcorrencia de Tempestades: %d\n", *(contadores+0));
+    fprintf(log, "Ocorrencia de Neblina: %d\n", *(contadores+1));
+    fprintf(log, "Ocorrencia de Turbulencias: %d\n", *(contadores+2));
+
+    fprintf(log,"\nTodos os avioes que pousaram:\n");
+    if(*pousados)
+        for(pos=0; pos < tamanho_aviao(*pousados); pos++){
+            avi = info(*pousados,pos);
+            add_to_log(log,avi);
+            fprintf(log,"Tempo Real: %d\n",avi->direcao);
+        }
+    else fprintf(log,"Nenhum.\n");
+
+    fprintf(log,"\nTodos os avioes que continuaram voando:\n");
+    if(*ceu)
+        for(pos=0; pos < tamanho_aviao(*ceu); pos++){
+            avi = info(*ceu,pos);
+            add_to_log(log,avi);
+            fprintf(log,"\n");
+        }
+    else fprintf(log,"Nenhum.");
+
+    fprintf(log,"\nTodos os avioes no aeroporto:\n");
+    if(*aeroporto){
+        for( pis=*aeroporto; pis; pis = pis->prox, cont++ ){
+            fprintf(log,"Pista %d:\n", cont+1);
+
+            if(pis->head){
+                for( pos=0; pos < tamanho_aviao(pis->head); pos++ ){
+                    avi = info(pis->head, pos);
+                    add_to_log(log, avi);
+                    fprintf(log,"\n");
+                }
+            }
+            else fprintf(log,"Nenhum.\n");
+        }
+
     }
+    else fprintf(log,"Nenhum.");
+
 
 }
