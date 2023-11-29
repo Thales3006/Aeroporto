@@ -42,6 +42,7 @@ int tamanho_in_pista(pista* a);
 aviao* info_Pista(pista* a, int posP, int posA);
 aviao* info(aviao* a, int pos);
 void aterrissando(aviao **a, int i, int pos);
+void neblina(aviao **ceu);
 void tempestade(aviao **ceu);
 void turbulencia(aviao **ceu);
 void pistas(pista** a,int n);
@@ -306,6 +307,17 @@ void aterrissando(aviao **a, int i, int pos){
                 }
             }
         }
+}
+
+void neblina(aviao **ceu){
+	if(!(*ceu))
+		return;
+	int a=tamanho_aviao(*ceu);
+	aviao *nebuloso=info((*ceu), rand()%a);
+	nebuloso->z=nebuloso->z-0.5;
+	printf("\nALERTA!!\nHá neblina no céu, a velocidade será reduzida em 5%% permanentemente!\n");
+	nebuloso->velocidade=nebuloso->velocidade*0.95;
+	
 }
 
 void tempestade(aviao **ceu) {
