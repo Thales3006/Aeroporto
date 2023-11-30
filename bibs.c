@@ -103,8 +103,8 @@ int menu(pista** aeroporto, aviao **ceu, aviao **pousados, int ciclos){
         do{
             scanf("%d",&command);
             setbuf(stdin, NULL);
-            if(command<=0||command>7)printf("\nComando invalido!\n");
-        }while(command<=0||command>7);
+            if(command<=0||command>8)printf("\nComando invalido!\n");
+        }while(command<=0||command>8);
 
         switch(command){
             case 1:
