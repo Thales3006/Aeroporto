@@ -3,9 +3,9 @@
 //TRABALHO DE ESTRUTURA DE DADOS 1
 
 //FEITO POR:
-// THALES JANISCH SANTOS
-// MARCOS VINICIUS SANTOS PASSOS
-// JOAO PAULO SIMPLICIO
+// THALES JANISCH SANTOS            a2566737
+// MARCOS VINICIUS SANTOS PASSOS    a2566672
+// JOAO PAULO SIMPLICIO             a2566656
 
 // Na nossa biblioteca se encontra a maioria das funções 
 // aqui apenas temos a main e a parse, que é a função que lê
