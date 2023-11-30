@@ -1,3 +1,20 @@
+//*****************************************************************************
+
+//TRABALHO DE ESTRUTURA DE DADOS 1
+
+//FEITO POR:
+// THALES JANISCH SANTOS
+// MARCOS VINICIUS SANTOS PASSOS
+// JOAO PAULO SIMPLICIO
+
+// Na nossa biblioteca se encontra a maioria das funções 
+// aqui apenas temos a main e a parse, que é a função que lê
+// o arquivo de entrada e chama as funções da biblioteca.
+
+
+//*****************************************************************************
+
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -6,10 +23,10 @@
 void parse(pista** aeroporto, aviao** ceu, aviao** pousados,FILE* entrada);
 
 int main(){
-    pista* aeroporto = NULL;
-    aviao* voando = NULL;
-    aviao* pousados = NULL;
-    FILE * entrada = fopen("entrada.txt","r");
+    pista* aeroporto = NULL; // "lista de listas" com os aviões que não decolaram
+    aviao* voando = NULL; // lista com os aviões voando
+    aviao* pousados = NULL; // lista com os aviões que ja terminaram seu percurso
+    FILE * entrada = fopen("entrada.txt","r"); //arquivo para leitura de dados
     if(!entrada){
         printf("\nNao foi possivel abrir o arquivo!\n");
         exit(1);
@@ -20,14 +37,15 @@ int main(){
     return 0;
 }
 
-void parse(pista** aeroporto, aviao** ceu, aviao** pousados,FILE* entrada){
+void parse(pista** aeroporto, aviao** ceu, aviao** pousados,FILE* entrada){//faz a interpretação do arquivo entrada.txt
+                                                                           //chama as funções da nossa biblioteca bibs
     char* cmd_line = malloc(sizeof(char)*ARRAY_SIZE);
     char* comando = malloc(sizeof(char)*ARRAY_SIZE);
-    int* argI = malloc(sizeof(int)*4);
+    int* argI = malloc(sizeof(int)*4);//variaveis para os argumentos passados em entrada.txt
     char* argS = malloc(sizeof(char)*2*ARRAY_SIZE);
     int* clima = malloc(sizeof(int)*3);
 
-    if(!cmd_line||!comando||!argI||!argS||!clima){
+    if(!cmd_line||!comando||!argI||!argS||!clima){//verifica se a memoria foi concedida pelo S.O.
         printf("\nSem memoria o suficiente!\n");
         exit(1);
     }
@@ -36,8 +54,8 @@ void parse(pista** aeroporto, aviao** ceu, aviao** pousados,FILE* entrada){
     *(clima+1)=-1;
     *(clima+2)=-1;
 
-    while( feof(entrada) == 0 ){
-        fgets(cmd_line, 100, entrada);
+    while( feof(entrada) == 0 ){// le o arquivo inteiro
+        fgets(cmd_line, 100, entrada);//le cada linha e passa para uma string
 
         strcpy(comando,strtok(cmd_line," "));
 
