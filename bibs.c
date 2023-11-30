@@ -432,7 +432,11 @@ void decolar(pista** aeroporto, aviao** ceu, int pista) { // decola o primeiro a
 
     a->velocidade = 260 + rand() % 60;
     a->estado = 2;
-    a->direcao = rand() % 360;
+	
+	for(i=0, j=0; *((a->destino)+i)!='\0';i++)
+		j += (int)*((a->destino)+i) * i;
+    a->direcao = j % 360;
+
 
     a->x += a->velocidade/MIN * cos((a->direcao*M_PI)/180);
     a->y += a->velocidade/MIN * sin((a->direcao*M_PI)/180);
