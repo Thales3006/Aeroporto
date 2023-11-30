@@ -25,6 +25,8 @@ typedef struct pista{
     struct pista* prox;
 }pista;
 
+// FUNÇÕES DE AUXILIO DE CRIAÇÃO E ALTERAÇÃO DE LISTAS ENCADEADAS
+
 void criar_pista(pista** a);
 void add_to_pista(pista** a, int pos, int codigo, char modelo[], char destino[], int distancia, int tempo_de_voo, float velocidade, int estado, int direcao);
 void del_pista(pista** a, int pos);
@@ -42,6 +44,7 @@ aviao* info_Pista(pista* a, int posP, int posA);
 aviao* info(aviao* a, int pos);
 
 //********************************************
+//FUNÇÕES REFERENTES AO PROJETO
 
 int menu(pista** aeroporto, aviao **ceu, aviao **pousados, int ciclos);
 
@@ -60,5 +63,7 @@ void fim(pista **aeroporto,aviao **voando,aviao** pousados);
 
 void add_to_log(FILE* log,aviao* a);
 void registrar(pista** aeroporto, aviao **ceu, aviao **pousados, int* contadores);
+
+void grafico(aviao* ceu);
 
 //*****************************************
