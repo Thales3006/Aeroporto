@@ -11,6 +11,14 @@
 // aqui apenas temos a main e a parse, que é a função que lê
 // o arquivo de entrada e chama as funções da biblioteca.
 
+//Testado no LINUX e WINDOWS
+//Supostamente é para funcionar em qualquer um dos dois sitemas operacionais
+
+//Comandos para rodar
+//
+// gcc -c bibs.c
+// gcc main.c bibs.o -lm -o main
+// ./main
 
 //*****************************************************************************
 
