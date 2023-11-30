@@ -433,7 +433,7 @@ void decolar(pista** aeroporto, aviao** ceu, int pista) { // decola o primeiro a
     a->velocidade = 260 + rand() % 60;
     a->estado = 2;
 	
-	for(i=0, j=0; *((a->destino)+i)!='\0';i++)
+	for(i=0, j=0; *((a->destino)+i)!='\0';i++) //direcao calculada de acordo com o destino
 		j += (int)*((a->destino)+i) * i;
     a->direcao = j % 360;
 
