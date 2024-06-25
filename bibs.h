@@ -47,7 +47,6 @@ aviao* info(aviao* a, int pos);
 //FUNÇÕES REFERENTES AO PROJETO
 
 int menu(pista** aeroporto, aviao **ceu, aviao **pousados, int ciclos);
-
 void pistas(pista** a,int n);
 void decolar(pista** aeroporto, aviao** ceu, int pista);
 void aterrissando(aviao **a, aviao** pousados, int ciclos);

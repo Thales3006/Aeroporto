@@ -55,7 +55,6 @@ aviao* info(aviao* a, int pos);
 //FUNÇÕES REFERENTES AO PROJETO
 
 int menu(pista** aeroporto, aviao **ceu, aviao **pousados, int ciclos);
-
 void pistas(pista** a,int n);
 void decolar(pista** aeroporto, aviao** ceu, int pista);
 void aterrissando(aviao **a, aviao** pousados, int ciclos);
@@ -555,13 +554,25 @@ void aviao_move(aviao* ceu){ //move todos os aviões que estão voando de acordo
         }
 }
 
-void tempestade(aviao **ceu) { //afeta um avião aleatório com uma tempestade
+
+void neblina(aviao **ceu){
+	if(!(*ceu))
+		return;
+	int a=tamanho_aviao(*ceu);
+	aviao *nebuloso=info((*ceu), rand()%a);
+	nebuloso->z=nebuloso->z-0.5;
+	printf("\nALERTA!!\nHá neblina no céu, a velocidade será reduzida em 5%% permanentemente!\n");
+	nebuloso->velocidade=nebuloso->velocidade*0.95;
+	
+}
+
+void tempestade(aviao **ceu) {
+
     if (!*ceu) // Verifica se há aviões no ceu
         return;
     int tam = tamanho_aviao(*ceu); // conta quantos aviões há no ceu
     int sorteado = rand() % tam;
     int tempestade = rand() % 2; // decide se a tempestade sera forte ou fraca
-    
     aviao *afetado = info(*ceu, sorteado);
 
     // altera a latitude e a velocidade conforme a tempestade
@@ -578,6 +589,7 @@ void tempestade(aviao **ceu) { //afeta um avião aleatório com uma tempestade
     }
 }
 
+
 void neblina(aviao **ceu){ //afeta um avião aleatório com uma neblina
 	if(!*ceu) return;
 	int a = tamanho_aviao(*ceu);
@@ -590,6 +602,7 @@ void neblina(aviao **ceu){ //afeta um avião aleatório com uma neblina
 }
 
 void turbulencia(aviao **ceu) { //afeta um avião aleatório com uma turbulencia
+
     if (!*ceu) // Verifica se há aviões no ceu
         return;
     int tam = tamanho_aviao(*ceu); // conta quantos aviões há no ceu
@@ -651,6 +664,11 @@ int colidiu(aviao* ceu, float x, float y, float z){ // analisa se um ponto espec
 }
 
 void fim(pista **aeroporto,aviao **voando,aviao** pousados){//apaga e limpa todas as listas
+    printf("Aviao com turbulencia, reduza a velocidade\n");
+    afetado->velocidade -=  afetado->velocidade * 0.15; //altera a velocidade
+}
+
+void fim(pista **aeroporto,aviao **voando){
 
     del_all_pista(aeroporto);
     del_all_aviao(voando);
